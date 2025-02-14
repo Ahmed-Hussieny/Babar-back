@@ -77,3 +77,48 @@ export const updateOrderStatus = async (req, res, next) => {
         order,
     });
 };
+
+export const getOrdersFromRestaurant = async (req, res, next) => {
+    try {
+        const { restaurantId } = req.params;
+
+        // Get today's start and end timestamps
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const endOfDay = new Date();
+        endOfDay.setHours(23, 59, 59, 999);
+
+        // Query for orders with status "Pending" or "Preparing" created today
+        const orders = await Order.find({
+            restaurant: restaurantId,
+            status: { $in: ["Pending", "Preparing"] },
+            createdAt: { $gte: startOfDay, $lte: endOfDay },
+        });
+
+        if (!orders.length) return next({ message: "No orders found", cause: 404 });
+
+        res.status(200).json({
+            success: true,
+            message: "Orders fetched successfully",
+            orders,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+export const acceptOrderFromRestaurant = async (req, res, next) => {
+    const { orderId } = req.params;
+    const order = await Order.findById(orderId);
+    if (!order) return next({ message: "Order not found", cause: 404 });
+    order.status = "Preparing";
+    await order.save();
+    io.to(order.restaurant).emit("orderAccepted", order);
+    return res.status(200).json({
+        success: true,
+        message: "Order accepted successfully",
+        order,
+    });
+};

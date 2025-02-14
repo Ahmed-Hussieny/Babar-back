@@ -11,24 +11,23 @@ export const auth = (accessRoles) => {
 
     //* split token from the prefix
     const token = accesstoken.split(process.env.TOKEN_PREFIX)[1];
-
+    
     //* verify the token
     try {
       const decodedData = jwt.verify(token, process.env.JWT_SECRET);
       if (!decodedData || !decodedData.id)
         return next({ message: "Invalid access token", cause: 401 });
-
+      
       //* check if the user is found in the database
       const user = await User.findById(decodedData.id, "-password");
       if (!user) return next({ message: "User is not found", cause: 404 });
-
+      
       //* attach the user to the request object
       req.authUser = user;
-
+      
       //* check if the user has the required role
       if (!accessRoles.includes(req.authUser.role))
         return next({ message: "Unauthorized", cause: 403 });
-        
       return next();
     } catch (error) {
       //* check if the token is expired

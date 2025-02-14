@@ -5,11 +5,11 @@ const notificationSchema = new Schema({
         type: String,
         required: true,
     },
-    restaurant: {
+    restaurantId: {
         type: Schema.Types.ObjectId,
         ref: "Restaurant",
     },
-    order: {
+    orderId: {
         type: Schema.Types.ObjectId,
         ref: "Order",
     },

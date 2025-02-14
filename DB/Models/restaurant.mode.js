@@ -7,12 +7,7 @@ const restaurantSchema = new Schema({
     phone: { type: String, required: true },
     email: { type: String, required: true },
     password: { type: String, required: true },
-    status: {
-        type: String,
-        required: true,
-        default: "Open",
-        enum: ["Open", "Closed"],
-    },
+    status:  { type: Boolean, default: false },
     addedBy: { type: Schema.Types.ObjectId, ref: "User" },
     isVerified: { type: Boolean, default: false },
     token:{

@@ -26,4 +26,12 @@ orderRouter.put('/update-order/:orderId',
 orderRouter.post('/update-Status/:orderId',
     // auth(orderRoles.UPDATE_ORDER_STATUS),
     expressAsyncHandler(orderController.updateOrderStatus));
+
+orderRouter.get('/get-orders-from-restaurant/:restaurantId',
+    // auth(orderRoles.GET_ORDERS_FROM_RESTAURANT),
+    expressAsyncHandler(orderController.getOrdersFromRestaurant));
+
+orderRouter.post('/accept-order-from-restaurant/:orderId',
+    // auth(orderRoles.ACCEPT_ORDER),
+    expressAsyncHandler(orderController.acceptOrderFromRestaurant));
 export default orderRouter;
