@@ -14,6 +14,7 @@ export const initiateApp = ({ app, express }) => {
   app.use("/api/v1/order", routers.orderRouter);
   app.use("/api/v1/message", routers.messageRouter);
   app.use("/api/v1/notification", routers.notificationRouter);
+  app.use("/api/v1/delivery", routers.deliveryRouter);
   app.use("*", (req, res, next) => {
     next({ message: "Route not found", status: 404 });
   });

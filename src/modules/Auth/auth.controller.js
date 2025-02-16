@@ -176,3 +176,41 @@ export const resetPassword = async (req, res, next) => {
         message: "Password successfully reset",
     });
 };
+
+
+//& ===================== Update Logged In User =====================
+export const updateLoggedInUser = async (req, res, next) => {
+    //* get the user data from the request body
+    const { username, email} = req.body;
+    const { _id:userId } = req.authUser;
+    
+    //* check if the user is found
+    const user = await User.findById(userId);
+    if(!user) return next({message: 'User is not found', cause: 404});
+
+    //* update the user data
+    if(username) user.username = username;
+    if(email) user.email = email;
+    const updatedUser = await user.save();
+    if(!updatedUser) return next({message: 'User is not updated', cause: 500});
+    return res.status(200).json({success:true, message: 'User is updated successfully', user: updatedUser});
+};
+
+//& ===================== Update Logged In User Password =====================
+export const updateLoggedInUserPassword = async (req, res, next) => {
+    console.log('updateLoggedInUserPassword');
+    const { oldPassword, newPassword } = req.body;
+    const { _id:userId } = req.authUser;
+    //* check if the user is found
+    const user = await User.findById(userId);
+    if(!user) return next({message: 'User is not found', cause: 404});
+    //* check if the old password is correct
+    const isValidPassword = bcrypt.compareSync(oldPassword, user.password);
+    if(!isValidPassword) return next({message: 'Old password is not correct', cause: 400});
+    //* hash the new password
+    const hashedPassword = bcrypt.hashSync(newPassword, +process.env.HASH_SALT);
+    user.password = hashedPassword;
+    const updatedUser = await user.save();
+    if(!updatedUser) return next({message: 'User password is not updated', cause: 500});
+    return res.status(200).json({success:true, message: 'User password is updated successfully', user: updatedUser});
+};

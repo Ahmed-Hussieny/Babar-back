@@ -14,7 +14,7 @@ export const addMessage = async (req, res, next) => {
   });
   if (!newMessage)
     return next({ message: "Message is not created", cause: 500 });
-  io.to(restaurantId).emit("newMessage", newMessage);
+  // io.to(restaurantId).emit("newMessage", newMessage);
   return res
     .status(201)
     .json({ message: "Message added successfully", message: newMessage });

@@ -1,3 +1,5 @@
+import Notification from "../../../DB/Models/notification.model.js";
+
 //& ========================= ADD NOTIFICATION =========================
 export const addNotification = async (req, res, next) => {
     const { message, body, type, receiverId } = req.body;
@@ -17,7 +19,19 @@ export const addNotification = async (req, res, next) => {
 
 export const getNotificationsForRestaurant = async (req, res, next) => {
     const { restaurantId } = req.params;
-    const notifications = await Notification.find({ receiverId: restaurantId });
+    const notifications = await Notification.find({ restaurantId,
+        target: "Restaurant"
+     }).populate("orderId").sort({ createdAt: -1 });
+    res.status(200).json({
+        message: "Notifications fetched successfully",
+        notifications,
+    });
+};
+
+export const getAllNotificationForAdmin = async (req, res, next) => {
+    // need to make the neew ones first
+
+    const notifications = await Notification.find({ target: "Admin" }).populate("orderId restaurantId").sort({ createdAt: -1 });;
     res.status(200).json({
         message: "Notifications fetched successfully",
         notifications,

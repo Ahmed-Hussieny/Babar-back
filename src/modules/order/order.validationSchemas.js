@@ -5,5 +5,6 @@ export const addOrderSchema = {
         name: Joi.string().required(),
         restaurantId: Joi.string().required(),
         amount: Joi.number().required(),
+        description: Joi.string().required(),
     })
 }

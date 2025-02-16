@@ -10,6 +10,8 @@ import {
     verifyEmailSchema,
     verifyResetCodeSchema,
 } from "./auth.validationSchemas.js";
+import { auth } from "../../middlewares/auth.middleware.js";
+import { systemRoles } from "../../utils/system-roles.js";
 const authRouter = Router();
 
 authRouter.post(
@@ -46,5 +48,18 @@ authRouter.post(
     validationMiddleware(resetPasswordSchema),
     expressAsyncHandler(authController.resetPassword)
 );
+
+authRouter.put(
+    "/updateLoggedInUser",
+    auth([systemRoles.ADMIN]),
+    expressAsyncHandler(authController.updateLoggedInUser)
+)
+
+authRouter.put(
+    "/updateLoggedInUserPassword",
+    auth([systemRoles.ADMIN]),
+    expressAsyncHandler(authController.updateLoggedInUserPassword)
+)
+
 
 export default authRouter;

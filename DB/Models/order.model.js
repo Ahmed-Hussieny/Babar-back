@@ -14,7 +14,7 @@ const orderSchema = new Schema({
         type: String,
         required: true,
         default: "Pending",
-        enum: ["Pending" , "Completed", "Preparing", "Cancelled"]
+        enum: ["Pending" , "Completed", "Preparing", "Cancelled", "Ready"],
     },
     amount: {
         type: Number,
@@ -31,6 +31,10 @@ const orderSchema = new Schema({
     addedBy: {
         type: Schema.Types.ObjectId,
         ref: "User",
+    },
+    description: {
+        type: String,
+        default: "",
     },
     restaurant: {
         type: Schema.Types.ObjectId,
