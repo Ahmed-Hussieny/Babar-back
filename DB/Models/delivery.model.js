@@ -30,6 +30,11 @@ const deliverySchema = new Schema({
         type: String,
         default: "Pending",
         enum: ["Pending", "Accepted", "Rejected"]
+    },
+    deliveryId: {
+        type: Schema.Types.ObjectId,
+        ref: "DeliveryUser",
+        required: true
     }
 }, {
     timestamps: true

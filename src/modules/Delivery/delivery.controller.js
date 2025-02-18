@@ -4,9 +4,9 @@ import { io } from "../../../index.js";
 //& ======================== ADD DELIVERY ========================
 export const addDelivery = async (req, res, next) => {
     
-  const { companyName, phoneNumber, fromLocation, toLocation, vehicleType, notes } =
+  const { companyName, phoneNumber, fromLocation, toLocation, vehicleType, notes, deliveryId } =
     req.body;
-    console.log(companyName, phoneNumber, fromLocation, toLocation, vehicleType, notes)
+    console.log(req.body);
   const delivery = await Delivery.create({
     companyName,
     phoneNumber,
@@ -14,6 +14,7 @@ export const addDelivery = async (req, res, next) => {
     toLocation,
     vehicleType,
     notes,
+    deliveryId
   });
   if(!delivery) return next({
     message: "Failed to add delivery",

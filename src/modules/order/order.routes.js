@@ -34,4 +34,8 @@ orderRouter.get('/get-orders-from-restaurant/:restaurantId',
 orderRouter.post('/accept-order-from-restaurant/:orderId',
     // auth(orderRoles.ACCEPT_ORDER),
     expressAsyncHandler(orderController.acceptOrderFromRestaurant));
+
+orderRouter.get('/generate-excel',
+    // auth(orderRoles.GENERATE_EXCEL),
+    expressAsyncHandler(orderController.generateExcelSheet));
 export default orderRouter;

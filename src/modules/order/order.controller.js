@@ -3,6 +3,7 @@ import Order from "../../../DB/Models/order.model.js";
 import Restaurant from "../../../DB/Models/restaurant.mode.js";
 import { io } from "../../../index.js";
 import { generateUniqueCode } from "../../utils/generateUniqueString.js";
+import ExcelJS from "exceljs";
 
 //& ===================== ADD ORDER =====================
 export const addOrder = async (req, res, next) => {
@@ -12,6 +13,10 @@ export const addOrder = async (req, res, next) => {
   const isRestaurantExists = await Restaurant.findById(restaurantId);
   if (!isRestaurantExists)
     return next({ message: "Restaurant is not exists", cause: 404 });
+  console.log(isRestaurantExists.status)
+  if(!isRestaurantExists.status) {
+    return next({ message: "المطعم مغلق الان", cause: 404 });
+  }
 
   const newOrder = await Order.create({
     billNo: generateUniqueCode(),
@@ -94,13 +99,27 @@ export const updateOrder = async (req, res, next) => {
     { status, price, duration },
     { new: true }
   );
-  io.to("adminRoom").emit("OrderUpdated", {
-    order: order,
-  });
+  
   if(status === "Completed" || status === "Cancelled") {
     io.to(order.restaurant.toString()).emit("OrderUpdated", {
         order: order,
       });
+  }else{
+    io.to("adminRoom").emit("OrderUpdated", {
+      order: order,
+    });
+    const newNotification = await Notification.create({
+      message: `تم تحديث الطلب ${order.billNo}`,
+      restaurantId: order.restaurant.toString(),
+      orderId: order._id,
+      type: "Order",
+      target: "Admin",
+    });
+    const notification = await newNotification.populate("orderId");
+
+    io.to("adminRoom").emit("newNotification", {
+      notification: notification,
+    });
   }
   
   if (!order) return next({ message: "Order not found", cause: 404 });
@@ -140,7 +159,7 @@ export const getOrdersFromRestaurant = async (req, res, next) => {
   // Query for orders with status "Pending" or "Preparing" created today
   const orders = await Order.find({
     restaurant: restaurantId,
-    status: { $in: ["Pending", "Preparing"] },
+    status: { $in: ["Pending", "Preparing", "Ready"] },
     createdAt: { $gte: startOfDay, $lte: endOfDay },
   }).sort({ createdAt: -1 });
 
@@ -166,4 +185,53 @@ export const acceptOrderFromRestaurant = async (req, res, next) => {
     message: "Order accepted successfully",
     order,
   });
+};
+
+//& ================ Generate Excel Sheet For Orders with ints restaurant Name ================
+export const generateExcelSheet = async (req, res, next) => {
+  try {
+    const orders = await Order.find().populate("restaurant addedBy").sort({ createdAt: -1 });
+
+    if (!orders || orders.length === 0) {
+      return res.status(400).json({ message: "No orders found for this restaurant" });
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Orders");
+
+    worksheet.columns = [
+      { header: "رقم الطلب", key: "billNo", width: 15 },
+      { header: "اسم الطلب", key: "name", width: 20 },
+      { header: "المطعم", key: "restaurant", width: 25 },
+      { header: "الكميه", key: "amount", width: 15 },
+      { header: "حالة الطلب", key: "status", width: 15 },
+      { header: "بواسطة", key: "addedBy", width: 20 },
+      { header: "الوصف", key: "description", width: 30 },
+      { header: "التاريخ", key: "createdAt", width: 20 },
+    ];
+
+    orders.forEach((order) => {
+      worksheet.addRow({
+        billNo: order.billNo,
+        name: order.name,
+        restaurant: order.restaurant?.name || "N/A",
+        amount: order.amount,
+        status: order.status,
+        addedBy: order.addedBy.username,
+        description: order.description,
+        createdAt: order.createdAt.toISOString(),
+      });
+    });
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader("Content-Disposition", "attachment; filename=Orders.xlsx");
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    res.status(500).json({ message: "Error generating Excel file", error: error.message });
+  }
 };

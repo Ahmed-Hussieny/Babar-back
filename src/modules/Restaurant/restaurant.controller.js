@@ -10,7 +10,7 @@ export const addRestaurant = async (req, res, next) => {
   // check if restaurant exists
   const isRestaurantExists = await Restaurant.findOne({ email });
   if (isRestaurantExists)
-    return next({ message: "Restaurant is already exists", cause: 400 });
+    return next({ message: "هذا المطعم موجود بالفعل", cause: 400 });
 
   const newRestaurant = await Restaurant.create({
     name,
@@ -21,11 +21,11 @@ export const addRestaurant = async (req, res, next) => {
     addedBy,
   });
   if (!newRestaurant)
-    return next({ message: "Restaurant is not created", cause: 500 });
+    return next({ message: "لم يتم إنشاء المطعم", cause: 500 });
 
   res.status(201).json({
     success: true,
-    message: "Restaurant added successfully",
+    message: "تمت إضافة المطعم بنجاح",
     restaurant: newRestaurant,
   });
 };
@@ -44,16 +44,16 @@ export const loginRestaurant = async (req, res, next) => {
   const { email, password } = req.body;
 
   const restaurant = await Restaurant.findOne({ email });
-  if (!restaurant) return next({ message: "Restaurant not found", cause: 404 });
+  if (!restaurant) return next({ message: "لم يتم العثور على المطعم", cause: 404 });
 
   // check if restaurant is verified
   if (!restaurant.isVerified)
-    return next({ message: "Restaurant is not verified", cause: 401 });
+    return next({ message: "هذا المطعم غير مفعل تواصل مع المسؤول", cause: 401 });
 
   // check if password is correct
   const isPasswordValid = bcrypt.compareSync(password, restaurant.password);
   if (!isPasswordValid)
-    return next({ message: "Password is invalid", cause: 400 });
+    return next({ message: "كلمة المرور غير صالحة", cause: 400 });
 
   // create token
   const token = jwt.sign({ _id: restaurant._id }, process.env.JWT_SECRET, {
@@ -64,7 +64,7 @@ export const loginRestaurant = async (req, res, next) => {
 
   return res.status(200).json({
     success: true,
-    message: "Restaurant logged in successfully",
+    message: "تم تسجيل دخول المطعم بنجاح",
     restaurant,
     token,
   });
