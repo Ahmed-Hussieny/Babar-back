@@ -29,4 +29,10 @@ deliveryUserRouter.post(
   auth(restaurantRoles.ADD_RESTAURANT),
   expressAsyncHandler(deliveryUserController.verifyDelivery)
 );
+
+deliveryUserRouter.get(
+  "/get-DeliveryAccountInfo",
+  // auth(restaurantRoles.ADD_RESTAURANT),
+  expressAsyncHandler(deliveryUserController.getDeliveryAccountInfo)
+);
 export default deliveryUserRouter;

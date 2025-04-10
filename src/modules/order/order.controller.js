@@ -1,3 +1,4 @@
+import Delivery from "../../../DB/Models/delivery.model.js";
 import Notification from "../../../DB/Models/notification.model.js";
 import Order from "../../../DB/Models/order.model.js";
 import Restaurant from "../../../DB/Models/restaurant.mode.js";
@@ -30,7 +31,7 @@ export const addOrder = async (req, res, next) => {
 
   io.to(restaurantId).emit("newOrder", newOrder);
   const newNotification = await Notification.create({
-    message: `New order received from ${name}`,
+    message: `تم اضافة طلب جديد #${newOrder.billNo}`,
     restaurantId: isRestaurantExists._id,
     orderId: newOrder._id,
     type: "Order",
@@ -44,7 +45,7 @@ export const addOrder = async (req, res, next) => {
     .status(201)
     .json({
       success: true,
-      message: "Order added successfully",
+      message: "تم اضافة الطلب بنجاح",
       order: newOrder,
     });
 };
@@ -68,7 +69,7 @@ export const getOrders = async (req, res) => {
   }).sort({ createdAt: -1 });
 
   // delete all notifications for this order and it type is Message
-  await Notification.deleteMany({ restaurantId, type: "Order" });
+  // await Notification.deleteMany({ restaurantId, type: "Order" });
 
   res.status(200).json({
     success: true,
@@ -191,15 +192,17 @@ export const acceptOrderFromRestaurant = async (req, res, next) => {
 export const generateExcelSheet = async (req, res, next) => {
   try {
     const orders = await Order.find().populate("restaurant addedBy").sort({ createdAt: -1 });
+    const deliveries = await Delivery.find().populate("deliveryId").sort({ createdAt: -1 });
 
-    if (!orders || orders.length === 0) {
-      return res.status(400).json({ message: "No orders found for this restaurant" });
+    if (!orders.length && !deliveries.length) {
+      return res.status(400).json({ message: "No data available" });
     }
 
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Orders");
 
-    worksheet.columns = [
+    // Sheet 1: Orders
+    const ordersSheet = workbook.addWorksheet("Orders");
+    ordersSheet.columns = [
       { header: "رقم الطلب", key: "billNo", width: 15 },
       { header: "اسم الطلب", key: "name", width: 20 },
       { header: "المطعم", key: "restaurant", width: 25 },
@@ -211,7 +214,7 @@ export const generateExcelSheet = async (req, res, next) => {
     ];
 
     orders.forEach((order) => {
-      worksheet.addRow({
+      ordersSheet.addRow({
         billNo: order.billNo,
         name: order.name,
         restaurant: order.restaurant?.name || "N/A",
@@ -219,7 +222,35 @@ export const generateExcelSheet = async (req, res, next) => {
         status: order.status,
         addedBy: order.addedBy.username,
         description: order.description,
-        createdAt: order.createdAt.toISOString(),
+        createdAt: order.createdAt.toISOString().split("T")[0],
+      });
+    });
+
+    // Sheet 2: Deliveries
+    const deliveriesSheet = workbook.addWorksheet("Deliveries");
+    deliveriesSheet.columns = [
+      { header: "Company Name", key: "companyName", width: 20 },
+      { header: "Phone Number", key: "phoneNumber", width: 15 },
+      { header: "From Location", key: "fromLocation", width: 25 },
+      { header: "To Location", key: "toLocation", width: 25 },
+      { header: "Vehicle Type", key: "vehicleType", width: 15 },
+      { header: "Notes", key: "notes", width: 30 },
+      { header: "Status", key: "status", width: 15 },
+      { header: "Delivery ID", key: "deliveryId", width: 25 },
+      { header: "Created At", key: "createdAt", width: 20 },
+    ];
+
+    deliveries.forEach((delivery) => {
+      deliveriesSheet.addRow({
+        companyName: delivery.companyName,
+        phoneNumber: delivery.phoneNumber,
+        fromLocation: delivery.fromLocation,
+        toLocation: delivery.toLocation,
+        vehicleType: delivery.vehicleType,
+        notes: delivery.notes,
+        status: delivery.status,
+        deliveryId: delivery.deliveryId?._id || "N/A",
+        createdAt: delivery.createdAt.toISOString().split("T")[0],
       });
     });
 
@@ -227,7 +258,7 @@ export const generateExcelSheet = async (req, res, next) => {
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     );
-    res.setHeader("Content-Disposition", "attachment; filename=Orders.xlsx");
+    res.setHeader("Content-Disposition", "attachment; filename=Data.xlsx");
 
     await workbook.xlsx.write(res);
     res.end();

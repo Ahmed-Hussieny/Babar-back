@@ -37,3 +37,26 @@ export const getAllNotificationForAdmin = async (req, res, next) => {
         notifications,
     });
 };
+
+export const makeNotificationsReadForOrder = async (req, res, next)=>{
+    const { orderId, target } = req.params;
+    const updatedNotifications = await Notification.updateMany({ orderId, type:"Order", target: target }, { status: "Read" });    
+    
+    if (!updatedNotifications) return next({ message: "Notification is not updated", cause: 500 });
+    return res.status(200).json({
+        success: true,
+        message: "Notifications updated successfully",
+        notifications: updatedNotifications,
+    });
+};
+
+export const deleteNotificationsForOrder = async (req, res, next) => {
+    const { orderId, target } = req.params;
+    const deletedNotifications = await Notification.deleteMany({ orderId, type:"Order", target: target  });    
+    
+    if (!deletedNotifications) return next({ message: "Notification is not deleted", cause: 500 });
+    return res.status(200).json({
+        success: true,
+        message: "Notifications deleted successfully",
+    });
+};

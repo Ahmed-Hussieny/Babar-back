@@ -25,7 +25,18 @@ const deliveryUserSchema = new Schema({
         type: String,
         default: systemRoles.DELIVERY,
     },
-}, { timestamps: true });
+}, { timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
+
+
+// virtuals
+deliveryUserSchema.virtual("Deliveries", {
+  ref: "Delivery",
+  localField: "_id",
+  foreignField: "deliveryId",
+});
 
 const DeliveryUser = mongoose.models.DeliveryUser || model("DeliveryUser", deliveryUserSchema);
 export default DeliveryUser;

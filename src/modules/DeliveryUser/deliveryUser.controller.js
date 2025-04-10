@@ -86,3 +86,42 @@ export const verifyDelivery = async (req, res, next) => {
       delivery,
     });
   };
+
+
+//& =========================== Get acount info For Deliveries ==========================
+export const getDeliveryAccountInfo = async (req, res, next) => {
+    const delivery = await DeliveryUser.find().populate("Deliveries");
+    const deliversData = delivery.map((delivery) => {
+      return {
+        _id: delivery._id,
+        name: delivery.name,
+        phone: delivery.phone,
+        email: delivery.email,
+        status: delivery.status,
+        isVerified: delivery.isVerified,
+        numberOfDeliveries: delivery.Deliveries.length,
+        pricesOfDeliveriesItems: delivery.Deliveries.reduce(
+          (acc, delivery) => acc + delivery.priceItems,
+          0
+        ),
+        pricesOfDeliveriesTransportation: delivery.Deliveries.reduce(
+          (acc, delivery) => acc + delivery.priceTransportation,
+          0
+        ),
+        totalPriceOfDeliveries: delivery.Deliveries.reduce(
+          (acc, delivery) => acc + delivery.priceTransportation + delivery.priceItems,
+          0
+        ),
+      };
+    });
+    if (!deliversData)
+      return next({ message: "Delivery is not found", cause: 404 });
+    if (!delivery)
+      return next({ message: "Delivery is not found", cause: 404 });
+  
+    return res.status(200).json({
+      success: true,
+      message: "Delivery account info fetched successfully",
+      deliversData,
+    });
+  };

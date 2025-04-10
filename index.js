@@ -24,7 +24,6 @@ io.on("connection", (socket) => {
   socket.on("joinRestaurantRoom", ({ restaurantId, status }) => {
     socket.join(restaurantId);
     restaurantStatus[restaurantId] = status;
-    // create Notification
     console.log(`Restaurant ${restaurantId} joined room`);
   });
   socket.on("updateRestaurantStatus", ({ restaurantId, status }) => {

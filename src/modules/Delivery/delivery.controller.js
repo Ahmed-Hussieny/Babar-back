@@ -31,8 +31,13 @@ export const addDelivery = async (req, res, next) => {
 //& ======================== GET ALL DELIVERIES ========================
 export const getAllDeliveries = async (req, res, next) => {
   const deliveries = await Delivery.find({
-    status: { $ne: "Accepted" }
-  });
+    $or: [
+      { status: "Pending" },
+      { status: "Accepted" },
+      { status: "Canceled" },
+      { status: "Completed" }
+    ]
+  }).populate("deliveryId representativeId");
   if (!deliveries) return next({
     message: "Failed to fetch deliveries",
     cause: 400
@@ -46,7 +51,6 @@ export const getAllDeliveries = async (req, res, next) => {
 //& ======================== Mark Delivery as Accepted ========================
 export const markDeliveryAsAccepted = async (req, res, next) => {
   const { deliveryId } = req.params;
-  console.log(deliveryId);
   const delivery = await Delivery.findById(deliveryId);
     if (!delivery) return next({
         message: "Delivery not found",
@@ -59,4 +63,111 @@ export const markDeliveryAsAccepted = async (req, res, next) => {
         message: "Delivery marked as accepted",
         delivery
     });
+};
+
+//& ======================== assign Delivery to Representative ========================
+export const assignDeliveryToRepresentative = async (req, res, next) => {
+  const { deliveryId, representativeId } = req.body;
+  const delivery = await Delivery.findById(deliveryId);
+  if (!delivery) return next({
+    message: "Delivery not found",
+    cause: 404
+  });
+  delivery.representativeId = representativeId;
+  await delivery.save();
+  return res.status(200).json({
+    success: true,
+    message: "Delivery assigned to representative",
+    delivery
+  });
+};
+
+//& ========================== Get All Deliveries By Representative ==========================
+export const getAllDeliveriesByRepresentative = async (req, res, next) => {
+  const { representativeId } = req.params;
+  const deliveries = await Delivery.find({ representativeId,
+    $or: [
+      { status: "Pending" },
+      { status: "Accepted" },
+      { status: "Canceled" },
+      { status: "Completed" }
+    ]
+   }).sort({ createdAt: -1 });
+  if (!deliveries) return next({
+    message: "Failed to fetch deliveries",
+    cause: 400
+  });
+  return res.status(200).json({
+    success: true,
+    deliveries
+  });
+};
+
+//& ========================== Finish Delivery ==========================
+export const finishDelivery = async (req, res, next) => {
+  const { deliveryId } = req.params;
+  const {priceItems, priceTransportation} = req.body
+  const delivery = await Delivery.findById(deliveryId);
+  if (!delivery) return next({
+    message: "Delivery not found",
+    cause: 404
+  });
+  delivery.status = "Completed";
+  delivery.priceItems = priceItems;
+  delivery.priceTransportation = priceTransportation;
+  const finishedDelivery = await delivery.save();
+  if (!finishedDelivery) return next({
+    message: "Failed to finish delivery",
+    cause: 400
+  });
+  const deliveries = await Delivery.find({ representativeId: delivery.representativeId,
+    $or: [
+      { status: "Pending" },
+      { status: "Accepted" }
+    ]
+   }).sort({ createdAt: -1 });
+  if (!deliveries) return next({
+    message: "Failed to fetch deliveries",
+    cause: 400
+  });
+  io.to("adminRoom").emit("finishedDelivery", { delivery });
+  return res.status(200).json({
+    success: true,
+    message: "Delivery finished successfully",
+    deliveries
+  });
+}
+
+//& ========================== Cancel Delivery ==========================
+export const cancelDelivery = async (req, res, next) => {
+  const { deliveryId } = req.params;
+  const {priceTransportation} = req.body
+  const delivery = await Delivery.findById(deliveryId);
+  if (!delivery) return next({
+    message: "Delivery not found",
+    cause: 404
+  });
+  delivery.status = "Completed";
+  delivery.priceTransportation = priceTransportation;
+  const CanceledDelivery = await delivery.save();
+  if (!CanceledDelivery) return next({
+    message: "Failed to finish delivery",
+    cause: 400
+  });
+  const deliveries = await Delivery.find({ representativeId: delivery.representativeId,
+    $or: [
+      { status: "Pending" },
+      { status: "Accepted" }
+    ]
+   }).sort({ createdAt: -1 });
+  if (!deliveries) return next({
+    message: "Failed to fetch deliveries",
+    cause: 400
+  });
+  io.to("adminRoom").emit("CanceledDelivery", { delivery });
+  return res.status(200).json({
+    success: true,
+    message: "Delivery finished successfully",
+    deliveries
+  });
 }

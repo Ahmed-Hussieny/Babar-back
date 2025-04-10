@@ -20,7 +20,7 @@ const deliverySchema = new Schema({
     vehicleType: {
         type: String,
         required: true,
-        enum: ["Car", "Moto"]
+        enum: ["Car", "Moto", "Protor"]
     },
     notes: {
         type: String,
@@ -29,12 +29,24 @@ const deliverySchema = new Schema({
     status: {
         type: String,
         default: "Pending",
-        enum: ["Pending", "Accepted", "Rejected"]
+        enum: ["Pending", "Accepted", "Rejected", "Canceled", "Completed"]
     },
     deliveryId: {
         type: Schema.Types.ObjectId,
         ref: "DeliveryUser",
         required: true
+    },
+    representativeId: {
+        type: Schema.Types.ObjectId,
+        ref: "Representative"
+    },
+    priceItems: {
+        type: Number,
+        default: 0,
+    },
+    priceTransportation: {
+        type: Number,
+        default: 0,
     }
 }, {
     timestamps: true

@@ -19,6 +19,7 @@ userRouter.put(
   validationMiddleware(updateLoggedInUserSchama),
   expressAsyncHandler(userController.updateLoggedInUser)
 );
+
 userRouter.delete(
   "/deleteLoggedInUser",
   auth(userEndPointsRoles.DELETE_USER),
