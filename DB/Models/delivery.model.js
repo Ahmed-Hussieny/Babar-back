@@ -29,7 +29,7 @@ const deliverySchema = new Schema({
     status: {
         type: String,
         default: "Pending",
-        enum: ["Pending", "Accepted", "Rejected", "Canceled", "Completed"]
+        enum: ["Pending", "Accepted", "Rejected", "Canceled", "Completed","Done"]
     },
     deliveryId: {
         type: Schema.Types.ObjectId,
@@ -47,6 +47,17 @@ const deliverySchema = new Schema({
     priceTransportation: {
         type: Number,
         default: 0,
+    },
+    numberOfItems: {
+        type: Number,
+        default: 0,
+    },
+    contentOfItems: {
+        type: String,
+    },
+    image: {
+        type: String,
+        default: ""
     }
 }, {
     timestamps: true

@@ -19,7 +19,7 @@ export const multerMiddlewareLocal = ({
         },
         filename : (req, file, cb)=>{
             //^ cb(error, filename)
-            cb(null,  Date.now()+ '-' +file.originalname);
+            cb(null, `${Date.now()}-${file.originalname}`);
         },
     });
     const fileFilter = (req, file, cb) => {
@@ -30,8 +30,6 @@ export const multerMiddlewareLocal = ({
             cb(new Error(`File type '${file.mimetype}' is not supported`), false);
         }
     };
-    
-    
-    const file = multer({fileFilter,storage, limits: {fileSize: 1024*1024*5},}).fields(fields);
+    const file = multer({fileFilter,storage, limits: {fileSize: 1024*1024*100},}).fields(fields);
     return file;
 }

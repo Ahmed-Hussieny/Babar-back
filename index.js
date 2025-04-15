@@ -32,6 +32,19 @@ io.on("connection", (socket) => {
     console.log(`Restaurant ${restaurantId} updated status to: ${status}`);
   });
 
+  socket.on("joinDeliveryRoom", ({ deliveryId }) => {
+    socket.join(deliveryId);
+    console.log(`Delivery ${deliveryId} joined room`);
+  });
+  // joinDeliveryUserRoom
+  socket.on("joinDeliveryUserRoom", ({ deliveryId }) => {
+    socket.join(deliveryId);
+  });
+  socket.on("joinRepresentativeRoom", ({ representativeId }) => {
+    socket.join(representativeId);
+    console.log(`Representative ${representativeId} joined room`);
+  });
+
   socket.on("joinRoom", (room) => {
     if (room) {
       socket.join(room);

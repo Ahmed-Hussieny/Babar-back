@@ -17,6 +17,8 @@ export const initiateApp = ({ app, express }) => {
   app.use("/api/v1/delivery", routers.deliveryRouter);
   app.use("/api/v1/deliveryUser", routers.deliveryUserRouter);
   app.use("/api/v1/representative", routers.representativeRouter);
+  app.use('/uploads/Deliveries', express.static('uploads/Deliveries'));
+
   app.use("*", (req, res, next) => {
     next({ message: "Route not found", status: 404 });
   });

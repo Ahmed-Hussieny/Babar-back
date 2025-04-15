@@ -254,6 +254,30 @@ export const generateExcelSheet = async (req, res, next) => {
       });
     });
 
+    // sheet 3: Delivery Users
+    // const deliveryUsersSheet = workbook.addWorksheet("Delivery Users");
+    // deliveryUsersSheet.columns = [
+    //   { header: "Name", key: "name", width: 20 },
+    //   { header: "Phone Number", key: "phoneNumber", width: 15 },
+    //   { header: "Email", key: "email", width: 25 },
+    //   { header: "Status", key: "status", width: 15 },
+    //   { header: "Is Verified", key: "isVerified", width: 15 },
+    //   { header: "Number of Deliveries", key: "numberOfDeliveries", width: 25 },
+    //   { header: "Created At", key: "createdAt", width: 20 },
+    // ];
+
+    // deliveries.forEach((delivery) => {
+    //   deliveryUsersSheet.addRow({
+    //     name: delivery.name,
+    //     phoneNumber: delivery.phoneNumber,
+    //     email: delivery.email,
+    //     status: delivery.status,
+    //     isVerified: delivery.isVerified ? "Yes" : "No",
+    //     numberOfDeliveries: delivery.Deliveries.length,
+    //     createdAt: delivery.createdAt.toISOString().split("T")[0],
+    //   });
+    // }
+    // );
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
